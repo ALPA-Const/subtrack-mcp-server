@@ -14,11 +14,13 @@ app.get("/", (req, res) => {
 
 // ===== OAUTH AUTHORIZE ENDPOINT (REQUIRED) =====
 app.get("/authorize", (req, res) => {
-  const params = new URLSearchParams(req.query);
-  const redirectUri = params.get("redirect_uri");
+  const { redirect_uri, state } = req.query;
 
-  // Immediately redirect back to Claude (OAuth handshake)
-  res.redirect(`${redirectUri}?code=demo_code`);
+  const url = new URL(redirect_uri);
+  url.searchParams.set("code", "demo_code");
+  url.searchParams.set("state", state);
+
+  res.redirect(url.toString());
 });
 
 // ===== OAUTH TOKEN ENDPOINT (REQUIRED) =====
