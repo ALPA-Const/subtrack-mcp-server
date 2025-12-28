@@ -35,7 +35,14 @@ app.post("/token", (req, res) => {
 // ===== MCP ENDPOINT =====
 app.post("/mcp", (req, res) => {
   res.json({
-    tools: [],
+    protocolVersion: "2024-11-05",
+    capabilities: {
+      tools: {},
+    },
+    serverInfo: {
+      name: "SubTrack MCP",
+      version: "1.0.0",
+    },
   });
 });
 
