@@ -1,47 +1,42 @@
 import express from "express";
-import { GoogleAuth } from "google-auth-library";
-import { google } from "googleapis";
-import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import fetch from "node-fetch";
+import bodyParser from "body-parser";
 
 const app = express();
-app.use(express.json());
+app.use(bodyParser.json());
 
-/* ---------- MCP SERVER ---------- */
-const mcp = new McpServer({
-  name: "SubTrack Google Connector",
-  version: "1.0.0"
-});
+const PORT = process.env.PORT || 3000;
 
-/* ---------- SIMPLE TEST TOOL ---------- */
-mcp.tool("google_profile", async () => {
-  return {
-    content: [
-      {
-        type: "text",
-        text: "Google connector is alive"
-      }
-    ]
-  };
-});
-
-/* ---------- MCP ENDPOINT ---------- */
-app.post("/mcp", async (req, res) => {
-  try {
-    const result = await mcp.handleRequest(req.body);
-    res.json(result);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: err.message });
-  }
-});
-
-/* ---------- HEALTH CHECK ---------- */
+// ===== BASIC HEALTH CHECK =====
 app.get("/", (req, res) => {
   res.send("SubTrack MCP Server Running");
 });
 
-/* ---------- START SERVER ---------- */
-const PORT = process.env.PORT || 3000;
+// ===== OAUTH AUTHORIZE ENDPOINT (REQUIRED) =====
+app.get("/authorize", (req, res) => {
+  const params = new URLSearchParams(req.query);
+  const redirectUri = params.get("redirect_uri");
+
+  // Immediately redirect back to Claude (OAuth handshake)
+  res.redirect(`${redirectUri}?code=demo_code`);
+});
+
+// ===== OAUTH TOKEN ENDPOINT (REQUIRED) =====
+app.post("/token", (req, res) => {
+  res.json({
+    access_token: "demo_access_token",
+    token_type: "Bearer",
+    expires_in: 3600,
+  });
+});
+
+// ===== MCP ENDPOINT =====
+app.post("/mcp", (req, res) => {
+  res.json({
+    tools: [],
+  });
+});
+
 app.listen(PORT, () => {
-  console.log(`MCP server running on port ${PORT}`);
+  console.log(`MCP server listening on port ${PORT}`);
 });
